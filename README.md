@@ -59,5 +59,9 @@ Navigate to http://localhost:8080
 ![Unauthorized Page Image](images/unauthorized.png)
 
 ### Building a container
+```
+docker build -t monocle-example-go .
+docker run --env-file .env -p 8080:8080 monocle-example-go
+```
 
 ### Heroku
