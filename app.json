@@ -1,0 +1,14 @@
+{
+    "name": "monocle-example-go",
+    "description": "Example Go app for Monocle",
+    "repository": "https://github.com/spurintel/monocle-example-go",
+    "scripts": {
+    },
+    "env": {
+    },
+    "buildpacks": [
+      {
+        "url": "heroku/go"
+      }
+    ]
+  }

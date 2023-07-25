@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Monocle Client Server</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #f7f7f7;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .form-container {
+            text-align: center;
+        }
+
+        .monocle-enriched {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .monocle-enriched input,
+        .monocle-enriched button {
+            padding: 10px;
+            width: 300px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .monocle-enriched button {
+            background-color: black;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            text-transform: uppercase;
+        }
+    </style>
+    <script
+        async
+        src="https://mcl.spur.us/d/mcl.js?tk={{ .Token }}"
+        id="_mcl"
+    ></script>
+</head>
+<body>
+    <div class="form-container">
+        <img src="/logo.png" alt="Logo" width="500px">
+        <h1>Login</h1>
+        <form action="/login" method="POST" class="monocle-enriched">
+            <input type="text" name="username" placeholder="Username" required><br>
+            <input type="password" name="password" placeholder="Password" required><br>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>

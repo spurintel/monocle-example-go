@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Monocle Client Server</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #f7f7f7;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .content-container {
+            text-align: center;
+        }
+
+        #json-output {
+            max-width: 80%;  /* Set max width to 80% of the container */
+            margin: auto;  /* Center the block horizontally */
+            color: #fff;
+            background: #000;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            text-align: left;
+            overflow: auto;
+            white-space: pre-wrap;  /* Allow line breaks */
+            word-wrap: break-word;  /* Break words on overflow */
+        }
+    </style>
+</head>
+<body>
+    <div class="content-container">
+        <img src="/logo.png" alt="Logo" width="500px">
+        <h1>Success</h1>
+        <h3>Username: {{ .Username }}</h3>
+        <pre id="json-output">{{ .Bundle }}</pre>
+    </div>
+</body>
+</html>
