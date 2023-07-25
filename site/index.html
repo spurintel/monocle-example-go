@@ -40,22 +40,70 @@
             font-size: 18px;
             text-transform: uppercase;
         }
+
+        #loading-status {
+            font-size: 14px;
+            color: red;
+        }
     </style>
-    <script
-        async
-        src="https://mcl.spur.us/d/mcl.js?tk={{ .Token }}"
-        id="_mcl"
-    ></script>
+    <script async src="https://mcl.spur.us/d/mcl.js?tk={{ .Token }}" id="_mcl"></script>
 </head>
 <body>
     <div class="form-container">
         <img src="/logo.png" alt="Logo" width="500px">
         <h1>Login</h1>
+        <p id="loading-status">Monocle Loading...</p>
         <form action="/login" method="POST" class="monocle-enriched">
-            <input type="text" name="username" placeholder="Username" required><br>
-            <input type="password" name="password" placeholder="Password" required><br>
-            <button type="submit">Submit</button>
+            <!-- Fields will be added here dynamically -->
         </form>
     </div>
+    <script>
+        function createInputField(id, type, name, placeholder, required = true) {
+            const inputField = document.createElement('input');
+            inputField.id = id;
+            inputField.type = type;
+            inputField.name = name;
+            inputField.placeholder = placeholder;
+            inputField.required = required;
+
+            return inputField;
+        }
+
+        function createSubmitButton(id, type, innerText) {
+            const button = document.createElement('button');
+            button.id = id;
+            button.type = type;
+            button.innerText = innerText;
+
+            return button;
+        }
+
+        window.addEventListener('DOMContentLoaded', (event) => {
+            const form = document.querySelector('.monocle-enriched');
+            const loadingStatus = document.getElementById('loading-status');
+
+            const observer = new MutationObserver((mutationsList, observer) => {
+                for(let mutation of mutationsList) {
+                    if (mutation.type === 'childList') {
+                        const monocleField = form.querySelector('input[name="monocle"]');
+                        if (monocleField) {
+                            form.appendChild(createInputField('username-field', 'text', 'username', 'Username'));
+                            form.appendChild(document.createElement('br'));
+                            form.appendChild(createInputField('password-field', 'password', 'password', 'Password'));
+                            form.appendChild(document.createElement('br'));
+                            form.appendChild(createSubmitButton('submit-button', 'submit', 'Submit'));
+
+                            loadingStatus.innerText = 'Monocle Finished Loading';
+                            loadingStatus.style.color = 'green';
+                            observer.disconnect();
+                            break;
+                        }
+                    }
+                }
+            });
+
+            observer.observe(form, { childList: true });
+        });
+    </script>
 </body>
 </html>
