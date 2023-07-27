@@ -39,6 +39,48 @@ For additional documentation please visit the monocle product page [Monocle](htt
 
 For additional information on integration visit the monocle documentation page [Monocle Integration](https://docs.spur.us/#/monocle?id=monocle)
 
+## How do I decide what to block?
+
+The Monocle Community Edition allows for the tracking of three distinct signals: VPN, proxied, and anonymous traffic. If you upgrade to the Monocle Enterprise Edition, your bundle will include an extra 'service' field. This added feature provides the means to more intricately block specific services. Using these indicators together, you can effectively deter undesired traffic to your website.
+
+The majority of scenarios typically involve one of the following:
+
+1. Blocking all VPN traffic
+2. Blocking all Proxy traffic
+3. Blocking both VPN and Proxy traffic.
+
+### No VPNs
+```go
+// Block anonymous VPNs
+if bundle.VPN && bundle.Anon {
+    log.Printf("Blocking request for username %s with bundle %s", username, monocleBundle)
+    w.WriteHeader(http.StatusUnauthorized)
+    w.Write([]byte(unauthorizedHTML)) //nolint
+    return
+}
+```
+
+### No Proxies
+```go
+// Block anonymous VPNs
+if bundle.Proxied && bundle.Anon {
+    log.Printf("Blocking request for username %s with bundle %s", username, monocleBundle)
+    w.WriteHeader(http.StatusUnauthorized)
+    w.Write([]byte(unauthorizedHTML)) //nolint
+    return
+}
+```
+
+### No VPNs or Proxies
+```go
+// Block both vpns and proxies
+if (bundle.VPN || bundle.Proxied) && bundle.Anon {
+    log.Printf("Blocking request for username %s with bundle %s", username, monocleBundle)
+    w.WriteHeader(http.StatusUnauthorized)
+    w.Write([]byte(unauthorizedHTML)) //nolint
+    return
+}
+```
 
 ## Getting started
 
