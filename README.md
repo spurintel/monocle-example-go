@@ -1,6 +1,30 @@
 # Monocle Example Go
 A simple Go backend example to get you started with monocle. It includes a Go web server and some basic HTML with a login form protected by monocle.
 
+## I don't want to RTFM Just get me started immediately
+
+```
+# Make a test directory
+mkdir monocle-test && cd monocle-test
+
+# Setup your env file, you have to have a monocle public key and token
+cat <<\EOF >> .env
+PORT=8080
+PRIVATE_KEY=
+TOKEN=
+USERNAME=alice
+PASSWORD=alice
+EOF
+
+# Pull the latest image
+docker pull jjunqueiraspur/monocle-example-go:latest
+
+# Run the example
+docker run --env-file .env -p 8080:8080 monocle-example-go:latest
+```
+
+Open https://localhost:8080
+
 ## What is monocle?
 Monocle is a passive zero-trust captcha that provides your web application with data to assess the risk of an individual user connection. Monocle is the only tool of its class capable of detecting residential proxies.
 
