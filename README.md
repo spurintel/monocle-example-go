@@ -20,7 +20,7 @@ EOF
 docker pull jjunqueiraspur/monocle-example-go:latest
 
 # Run the example
-docker run --env-file .env -p 8080:8080 monocle-example-go:latest
+docker run --env-file .env -p 8080:8080 jjunqueiraspur/monocle-example-go:latest
 ```
 
 Open https://localhost:8080
