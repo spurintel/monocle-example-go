@@ -1,15 +1,43 @@
 # Monocle Example Go
 A simple Go backend example to get you started with monocle. It includes a Go web server and some basic HTML with a login form protected by monocle.
 
+## I don't want to RTFM Just get me started immediately
+
+```
+# Make a test directory
+mkdir monocle-test && cd monocle-test
+
+# Setup your env file, you have to have a monocle public key and token
+cat <<\EOF >> .env
+PORT=8080
+PRIVATE_KEY=
+TOKEN=
+USERNAME=alice
+PASSWORD=alice
+EOF
+
+# Pull the latest image
+docker pull jjunqueiraspur/monocle-example-go:latest
+
+# Run the example
+docker run --env-file .env -p 8080:8080 jjunqueiraspur/monocle-example-go:latest
+```
+
+Open https://localhost:8080
+
 ## What is monocle?
 Monocle is a passive zero-trust captcha that provides your web application with data to assess the risk of an individual user connection. Monocle is the only tool of its class capable of detecting residential proxies.
 
-For additional documentation please visit the monocle documentation page [Monocle Documentation](https://spur.us/products/monocle/)
+For additional documentation please visit the monocle product page [Monocle](https://spur.us/products/monocle/)
+
+For additional information on integration visit the monocle documentation page [Monocle Integration](https://docs.spur.us/#/monocle?id=monocle)
 
 ## How does monocle work?
 You add a small JavaScript stub to your website or application. On a user-action, such as a form submission, you get an assessment (a.k.a threat bundle) that you can interpret on your backend to take action.
 
-For additional documentation please visit the monocle documentation page [Monocle Documentation](https://spur.us/products/monocle/)
+For additional documentation please visit the monocle product page [Monocle](https://spur.us/products/monocle/)
+
+For additional information on integration visit the monocle documentation page [Monocle Integration](https://docs.spur.us/#/monocle?id=monocle)
 
 
 ## Getting started
