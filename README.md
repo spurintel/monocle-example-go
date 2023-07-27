@@ -1,7 +1,7 @@
 # Monocle Example Go
 A simple Go backend example to get you started with monocle. It includes a Go web server and some basic HTML with a login form protected by monocle.
 
-## I don't want to RTFM Just get me started immediately
+## I don't want to RTFM just get me started immediately
 
 ```
 # Make a test directory
@@ -51,7 +51,7 @@ The majority of scenarios typically involve one of the following:
 
 ### No VPNs
 ```go
-// Block anonymous VPNs
+// Utilize the returned bundle to block anonymous vpns
 if bundle.VPN && bundle.Anon {
     log.Printf("Blocking request for username %s with bundle %s", username, monocleBundle)
     w.WriteHeader(http.StatusUnauthorized)
@@ -62,7 +62,7 @@ if bundle.VPN && bundle.Anon {
 
 ### No Proxies
 ```go
-// Block anonymous VPNs
+// Utilize the returned bundle to block anonymous proxies
 if bundle.Proxied && bundle.Anon {
     log.Printf("Blocking request for username %s with bundle %s", username, monocleBundle)
     w.WriteHeader(http.StatusUnauthorized)
@@ -73,7 +73,7 @@ if bundle.Proxied && bundle.Anon {
 
 ### No VPNs or Proxies
 ```go
-// Block both vpns and proxies
+// Utilize the returned bundle to block anonymous vpns and proxies
 if (bundle.VPN || bundle.Proxied) && bundle.Anon {
     log.Printf("Blocking request for username %s with bundle %s", username, monocleBundle)
     w.WriteHeader(http.StatusUnauthorized)
