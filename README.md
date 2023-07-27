@@ -145,5 +145,3 @@ docker build -t monocle-example-go .
 # Run the image using the environment file
 docker run --env-file .env -p 8080:8080 monocle-example-go
 ```
-
-### Heroku
