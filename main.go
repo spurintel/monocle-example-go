@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	jose "gopkg.in/square/go-jose.v2"
@@ -37,6 +38,7 @@ type config struct {
 	privateKey    string
 	token         string
 	parsedPrivKey interface{}
+	strictness    int
 
 	// Fake user credentials
 	username string
@@ -78,13 +80,13 @@ func main() {
 		w.Write(logoPNG) //nolint
 	})
 
-	log.Println("Listening on port", conf.port)
+	log.Println("listening on port", conf.port)
 
 	// Run server
-	log.Printf("Starting server with port %d, and token %s\n", conf.port, conf.token)
+	log.Printf("starting server with port %d", conf.port)
 	err = http.ListenAndServe(fmt.Sprintf(":%d", conf.port), r)
 	if err != nil {
-		log.Fatalf("Error starting server: %v", err)
+		log.Fatalf("error starting server: %v", err)
 	}
 }
 
@@ -96,7 +98,7 @@ type indexPageData struct {
 // handleIndex handles the index page
 func handleIndex(c config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Serving index page %s for token %s\n", r.RequestURI, c.token)
+		log.Printf("serving index page %s", r.RequestURI)
 
 		// index page template with token
 		t, err := template.New("index").Parse(indexHTML)
@@ -128,17 +130,21 @@ type MonocleBundle struct {
 	SID      string `json:"sid"`
 }
 
+type unauthorizedPageData struct {
+	Reason string
+}
+
 // handleUsernamePasswordFormPost handles the username/password form post
 func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Handling username/password form post")
+		log.Println("handling username/password form post")
 
 		r.ParseForm() //nolint
 		username := r.Form.Get("username")
 		password := r.Form.Get("password")
 		monocleBundle := r.Form.Get("monocle")
 
-		log.Printf("Recieved post for username %s with bundle %s", username, monocleBundle)
+		log.Printf("recieved post for username %s", username)
 
 		// Parse the encrypted Monocle bundle
 		jwe, err := jose.ParseEncrypted(monocleBundle)
@@ -150,38 +156,46 @@ func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 		// Decrypt the bundle with the private key
 		decryptedBundle, err := jwe.Decrypt(conf.parsedPrivKey)
 		if err != nil {
-			log.Printf("Error decrypting Monocle bundle: %v", err)
+			log.Printf("error decrypting Monocle bundle: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		log.Println("Decrypted Monocle bundle:", string(decryptedBundle))
+		log.Println("decrypted Monocle bundle:", string(decryptedBundle))
 
 		// Parse the decrypted bundle as JSON
 		var bundle MonocleBundle
 		err = json.Unmarshal(decryptedBundle, &bundle)
 		if err != nil {
-			log.Printf("Error parsing decrypted Monocle bundle: %v", err)
+			log.Printf("error parsing decrypted Monocle bundle: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		// Simple business logic example to block all anonymous vpn and proxied requests
-		if (bundle.VPN || bundle.Proxied) && bundle.Anon {
-			log.Printf("Blocking request for username %s with bundle %s", username, monocleBundle)
+		// Analyze the bundle and determine if we should block the request
+		shouldBlock, reason := block(conf, bundle)
+		if shouldBlock {
+			log.Printf("blocking request for username %s", username)
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(unauthorizedHTML)) //nolint
+			// index page template with token
+			t, err := template.New("index").Parse(unauthorizedHTML)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			t.Execute(w, unauthorizedPageData{Reason: reason}) //nolint
 			return
 		}
 
 		// If they provided the correct username and password, show the success page with the decrypted bundle for visual confirmation
 		if username == conf.username && password == conf.password {
-			log.Printf("Showing success page for username %s with bundle %s", username, monocleBundle)
+			log.Printf("showing success page for username %s", username)
 
 			// Format the bundle JSON nicely
 			decryptedBundle, err = json.MarshalIndent(bundle, "", "  ")
 			if err != nil {
-				log.Printf("Error marshalling decrypted bundle: %v", err)
+				log.Printf("error marshalling decrypted bundle: %v", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -198,7 +212,7 @@ func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 		}
 
 		// Otherwise, show the unauthorized page
-		log.Printf("Showing unauthorized page for username %s with bundle %s", username, monocleBundle)
+		log.Printf("showing unauthorized page for username %s", username)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte(unauthorizedHTML)) //nolint
 	}
@@ -225,6 +239,16 @@ func parseConfigFromEnv() config {
 		log.Fatal("TOKEN environment variable not set")
 	}
 
+	strictness := os.Getenv("STRICTNESS_LEVEL")
+	if strictness == "" {
+		log.Fatal("STRICTNESS_LEVEL environment variable not set")
+	}
+
+	strictnessInt, err := strconv.Atoi(strictness)
+	if err != nil {
+		log.Fatalf("invalid STRICTNESS_LEVEL value: %v", err)
+	}
+
 	username := os.Getenv("USERNAME")
 	if username == "" {
 		log.Fatal("USERNAME environment variable not set")
@@ -238,8 +262,56 @@ func parseConfigFromEnv() config {
 	return config{
 		port:       port,
 		privateKey: privateKey,
+		strictness: strictnessInt,
 		token:      token,
 		username:   username,
 		password:   password,
+	}
+}
+
+func block(cfg config, b MonocleBundle) (bool, string) {
+	// If we couldn't complete the analysis, block
+	if !b.Complete {
+		log.Println("bundle not complete, blocking")
+		return true, "bundle not complete"
+	}
+
+	// If the timestamp is empty, block
+	if b.TS == "" {
+		log.Println("bundle timestamp empty, blocking")
+		return true, "bundle timestamp empty"
+	}
+
+	// If the timestamp is too old, block
+	parsedTimestamp, err := time.Parse(time.RFC3339, b.TS)
+	if err != nil {
+		log.Printf("error parsing timestamp: %v", err)
+		return true, "bundle timestamp invalid"
+	}
+
+	if time.Since(parsedTimestamp) > time.Hour {
+		log.Println("bundle timestamp too old, blocking")
+		return true, "bundle timestamp too old"
+	}
+
+	// Depending on the strictness level, block if the bundle is a VPN, proxy, or anonymous
+	switch cfg.strictness {
+	case 0:
+		// Log only
+		log.Printf("strictness level log only, doing nothing for vpn: %v, proxied, %v, anon: %v", b.VPN, b.Proxied, b.Anon)
+		return false, ""
+	case 1:
+		// Block proxies
+		return b.Proxied && b.Anon, "no proxies allowed"
+	case 2:
+		// Block vpns
+		return b.VPN && b.Anon, "no vpns allowed"
+	case 3:
+		// Block vpns and proxies
+		return (b.VPN || b.Proxied) && b.Anon, "no vpns or proxies allowed"
+	default:
+		// Default to log only
+		log.Printf("strictness level log only, doing nothing for vpn: %v, proxied, %v, anon: %v", b.VPN, b.Proxied, b.Anon)
+		return false, ""
 	}
 }
