@@ -80,13 +80,13 @@ func main() {
 		w.Write(logoPNG) //nolint
 	})
 
-	log.Println("Listening on port", conf.port)
+	log.Println("listening on port", conf.port)
 
 	// Run server
-	log.Printf("Starting server with port %d, and token %s\n", conf.port, conf.token)
+	log.Printf("starting server with port %d", conf.port)
 	err = http.ListenAndServe(fmt.Sprintf(":%d", conf.port), r)
 	if err != nil {
-		log.Fatalf("Error starting server: %v", err)
+		log.Fatalf("error starting server: %v", err)
 	}
 }
 
@@ -98,7 +98,7 @@ type indexPageData struct {
 // handleIndex handles the index page
 func handleIndex(c config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Serving index page %s for token %s\n", r.RequestURI, c.token)
+		log.Printf("serving index page %s", r.RequestURI)
 
 		// index page template with token
 		t, err := template.New("index").Parse(indexHTML)
@@ -137,14 +137,14 @@ type unauthorizedPageData struct {
 // handleUsernamePasswordFormPost handles the username/password form post
 func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Handling username/password form post")
+		log.Println("handling username/password form post")
 
 		r.ParseForm() //nolint
 		username := r.Form.Get("username")
 		password := r.Form.Get("password")
 		monocleBundle := r.Form.Get("monocle")
 
-		log.Printf("Recieved post for username %s with bundle %s", username, monocleBundle)
+		log.Printf("recieved post for username %s", username)
 
 		// Parse the encrypted Monocle bundle
 		jwe, err := jose.ParseEncrypted(monocleBundle)
@@ -156,18 +156,18 @@ func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 		// Decrypt the bundle with the private key
 		decryptedBundle, err := jwe.Decrypt(conf.parsedPrivKey)
 		if err != nil {
-			log.Printf("Error decrypting Monocle bundle: %v", err)
+			log.Printf("error decrypting Monocle bundle: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		log.Println("Decrypted Monocle bundle:", string(decryptedBundle))
+		log.Println("decrypted Monocle bundle:", string(decryptedBundle))
 
 		// Parse the decrypted bundle as JSON
 		var bundle MonocleBundle
 		err = json.Unmarshal(decryptedBundle, &bundle)
 		if err != nil {
-			log.Printf("Error parsing decrypted Monocle bundle: %v", err)
+			log.Printf("error parsing decrypted Monocle bundle: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -175,7 +175,7 @@ func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 		// Analyze the bundle and determine if we should block the request
 		shouldBlock, reason := block(conf, bundle)
 		if shouldBlock {
-			log.Printf("Blocking request for username %s with bundle %s", username, monocleBundle)
+			log.Printf("blocking request for username %s", username)
 			w.WriteHeader(http.StatusUnauthorized)
 			// index page template with token
 			t, err := template.New("index").Parse(unauthorizedHTML)
@@ -185,17 +185,17 @@ func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 			}
 
 			t.Execute(w, unauthorizedPageData{Reason: reason}) //nolint
-			w.Write([]byte(unauthorizedHTML))                  //nolint
+			return
 		}
 
 		// If they provided the correct username and password, show the success page with the decrypted bundle for visual confirmation
 		if username == conf.username && password == conf.password {
-			log.Printf("Showing success page for username %s with bundle %s", username, monocleBundle)
+			log.Printf("showing success page for username %s", username)
 
 			// Format the bundle JSON nicely
 			decryptedBundle, err = json.MarshalIndent(bundle, "", "  ")
 			if err != nil {
-				log.Printf("Error marshalling decrypted bundle: %v", err)
+				log.Printf("error marshalling decrypted bundle: %v", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -212,7 +212,7 @@ func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 		}
 
 		// Otherwise, show the unauthorized page
-		log.Printf("Showing unauthorized page for username %s with bundle %s", username, monocleBundle)
+		log.Printf("showing unauthorized page for username %s", username)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte(unauthorizedHTML)) //nolint
 	}
@@ -285,7 +285,7 @@ func block(cfg config, b MonocleBundle) (bool, string) {
 	// If the timestamp is too old, block
 	parsedTimestamp, err := time.Parse(time.RFC3339, b.TS)
 	if err != nil {
-		log.Printf("Error parsing timestamp: %v", err)
+		log.Printf("error parsing timestamp: %v", err)
 		return true, "bundle timestamp invalid"
 	}
 
