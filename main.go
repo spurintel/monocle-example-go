@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	jose "gopkg.in/square/go-jose.v2"
@@ -37,6 +38,7 @@ type config struct {
 	privateKey    string
 	token         string
 	parsedPrivKey interface{}
+	strictness    int
 
 	// Fake user credentials
 	username string
@@ -128,6 +130,10 @@ type MonocleBundle struct {
 	SID      string `json:"sid"`
 }
 
+type unauthorizedPageData struct {
+	Reason string
+}
+
 // handleUsernamePasswordFormPost handles the username/password form post
 func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -166,12 +172,20 @@ func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 			return
 		}
 
-		// Simple business logic example to block all anonymous vpn and proxied requests
-		if (bundle.VPN || bundle.Proxied) && bundle.Anon {
+		// Analyze the bundle and determine if we should block the request
+		shouldBlock, reason := block(conf, bundle)
+		if shouldBlock {
 			log.Printf("Blocking request for username %s with bundle %s", username, monocleBundle)
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(unauthorizedHTML)) //nolint
-			return
+			// index page template with token
+			t, err := template.New("index").Parse(unauthorizedHTML)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			t.Execute(w, unauthorizedPageData{Reason: reason}) //nolint
+			w.Write([]byte(unauthorizedHTML))                  //nolint
 		}
 
 		// If they provided the correct username and password, show the success page with the decrypted bundle for visual confirmation
@@ -225,6 +239,16 @@ func parseConfigFromEnv() config {
 		log.Fatal("TOKEN environment variable not set")
 	}
 
+	strictness := os.Getenv("STRICTNESS_LEVEL")
+	if strictness == "" {
+		log.Fatal("STRICTNESS_LEVEL environment variable not set")
+	}
+
+	strictnessInt, err := strconv.Atoi(strictness)
+	if err != nil {
+		log.Fatalf("invalid STRICTNESS_LEVEL value: %v", err)
+	}
+
 	username := os.Getenv("USERNAME")
 	if username == "" {
 		log.Fatal("USERNAME environment variable not set")
@@ -238,8 +262,56 @@ func parseConfigFromEnv() config {
 	return config{
 		port:       port,
 		privateKey: privateKey,
+		strictness: strictnessInt,
 		token:      token,
 		username:   username,
 		password:   password,
+	}
+}
+
+func block(cfg config, b MonocleBundle) (bool, string) {
+	// If we couldn't complete the analysis, block
+	if !b.Complete {
+		log.Println("bundle not complete, blocking")
+		return true, "bundle not complete"
+	}
+
+	// If the timestamp is empty, block
+	if b.TS == "" {
+		log.Println("bundle timestamp empty, blocking")
+		return true, "bundle timestamp empty"
+	}
+
+	// If the timestamp is too old, block
+	parsedTimestamp, err := time.Parse(time.RFC3339, b.TS)
+	if err != nil {
+		log.Printf("Error parsing timestamp: %v", err)
+		return true, "bundle timestamp invalid"
+	}
+
+	if time.Since(parsedTimestamp) > time.Hour {
+		log.Println("bundle timestamp too old, blocking")
+		return true, "bundle timestamp too old"
+	}
+
+	// Depending on the strictness level, block if the bundle is a VPN, proxy, or anonymous
+	switch cfg.strictness {
+	case 0:
+		// Log only
+		log.Printf("strictness level log only, doing nothing for vpn: %v, proxied, %v, anon: %v", b.VPN, b.Proxied, b.Anon)
+		return false, ""
+	case 1:
+		// Block proxies
+		return b.Proxied && b.Anon, "no proxies allowed"
+	case 2:
+		// Block vpns
+		return b.VPN && b.Anon, "no vpns allowed"
+	case 3:
+		// Block vpns and proxies
+		return (b.VPN || b.Proxied) && b.Anon, "no vpns or proxies allowed"
+	default:
+		// Default to log only
+		log.Printf("strictness level log only, doing nothing for vpn: %v, proxied, %v, anon: %v", b.VPN, b.Proxied, b.Anon)
+		return false, ""
 	}
 }
