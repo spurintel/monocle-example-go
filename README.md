@@ -6,26 +6,26 @@ A simple Go backend example to get you started with monocle. It includes a Go we
    ```
    mkdir /tmp/monocle-test && cd /tmp/monocle-test
    ```
-1. Create a free Spur account - [Spur Sign Up](https://spur.us/app/start/create-account)
-2. Sign in to your account
-3. Navigate to your monocle settings - [Monocle Management](https://spur.us/app/monocle)
-4. Create a deployment
+2. Create a free Spur account - [Spur Sign Up](https://spur.us/app/start/create-account)
+3. Sign in to your account
+4. Navigate to your monocle settings - [Monocle Management](https://spur.us/app/monocle)
+5. Create a deployment
 
 
    ![Form Image](images/name-deployment.png)
 
-5. Click the download button to save your key or create a file and copy the pem encoded key data into it.
+6. Click the download button to save your key or create a file and copy the pem encoded key data into it.
 
 
    ![Form Image](images/save-deployment-key.png)
 
-6. Move your downloaded key to your test directory and name it `monocle-key.pem`
-7. Save your site token to a file called `site-token.txt`
+7. Move your downloaded key to your test directory and name it `monocle-key.pem`
+8. Save your site token to a file called `site-token.txt`
 
 
    ![Form Image](images/site-token.png)
 
-8. Create a .env file with the following content:
+9. Create a .env file with the following content:
    ```
    PORT=8080
    PRIVATE_KEY=
@@ -34,25 +34,25 @@ A simple Go backend example to get you started with monocle. It includes a Go we
    PASSWORD=alice
    STRICTNESS_LEVEL=0
    ```
-9. Setup your private key for embedding as an env variable. (Mac OS example)
+10. Setup your private key for embedding as an env variable. (Mac OS example)
     ```
     cat monocle-key.pem|base64|pbcopy
     ```
-10. Use the base64 encoded key in your .env file
+11. Use the base64 encoded key in your .env file
    ```
    # Open .env in your favorite editor and paste your base64 encoded key from the clipboard into the PRIVATE_KEY variable
    PRIVATE_KEY=dsaklfjaksljdfklajdsfkldasjfkdlasjfdsaklsjfklasdjfkdsa...
    ```
-11. Copy the site token to your clipboard
+12. Copy the site token to your clipboard
    ```
    cat site-token.txt|pbcopy
    ```
-12. Use the site token in your .env file
+13. Use the site token in your .env file
    ```
    # Open .env in your favorite editor and paste your site token from the clipboard into the TOKEN variable
    TOKEN=dsaklfjaksljdfklajdsfkldasjfkdlasjfdsaklsjfklasdjfkdsa...
    ```
-13. Run the example with docker
+14. Run the example with docker
    ```
    # Pull the latest image
    docker pull jjunqueiraspur/monocle-example-go:latest
