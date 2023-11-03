@@ -214,7 +214,13 @@ func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 		// Otherwise, show the unauthorized page
 		log.Printf("showing unauthorized page for username %s", username)
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(unauthorizedHTML)) //nolint
+		t, err := template.New("unauthorized").Parse(unauthorizedHTML)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		t.Execute(w, unauthorizedPageData{Reason: "invalid username/password"}) //nolint
 	}
 }
 
