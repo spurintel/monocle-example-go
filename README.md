@@ -10,9 +10,18 @@ A simple Go backend example to get you started with monocle. It includes a Go we
 1. Sign in to your account
 1. Navigate to your monocle settings - [Monocle Management](https://spur.us/app/monocle)
 1. Create a deployment
+
+   ![Form Image](images/name-deployment.png)
+
 1. Click the download button to save your key or create a file and copy the pem encoded key data into it.
+
+   ![Form Image](images/save-deployment-key.png)
+
 1. Move your downloaded key to your test directory and name it `monocle-key.pem`
 1. Save your site token to a file called `site-token.txt`
+
+   ![Form Image](images/site-token.png)
+
 1. Create a .env file with the following content:
    ```
    PORT=8080
