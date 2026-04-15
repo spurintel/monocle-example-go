@@ -25,7 +25,11 @@ A simple Go backend example to get you started with monocle. It includes a Go we
 
    ![Form Image](images/site-token.png)
 
-9. Create a .env file with the following content:
+9. Copy the example env file and edit it:
+   ```
+   cp .env.example .env
+   ```
+   The resulting `.env` should look like:
    ```
    PORT=8080
    PRIVATE_KEY=
@@ -197,15 +201,15 @@ You need to have Go, Docker, and make installed
 ### Environment
 For local testing you need to setup an env file.
 
-Setup an environment file called .env in the root of this directory. It should look like the following:
+Copy `.env.example` to `.env` in the root of this directory and fill in the values:
 ```
-PORT=8080
-PRIVATE_KEY={YOUR_PRIVATE_KEY_HERE}
-TOKEN={YOUR_TOKEN}
-USERNAME=alice
-PASSWORD=alice
-STRICTNESS_LEVEL=0
+cp .env.example .env
 ```
+
+The server reads its configuration from environment variables — it does not parse `.env` itself. Use one of the standard paths to load it:
+- `make run` — the Makefile includes `.env` and exports it before running the binary.
+- `docker run --env-file .env ...` — Docker injects the file's contents into the container's environment.
+- `./server` directly — export the vars yourself first, e.g. `set -a; source .env; set +a; ./server`.
 
 You can change the username and password to anything you want. It is only for testing purposes.
 

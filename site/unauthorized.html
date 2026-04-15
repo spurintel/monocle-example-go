@@ -3,39 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <title>Monocle Client Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Fragment+Mono&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --black: #141414;
+            --white: #fafafa;
+            --neon: #ceff00;
+            --red: #ff0101;
+            --gunmetal: #414141;
+            --charcoal: #5a5a5a;
+            --ash: #8d8d8d;
+            --button-bezier: cubic-bezier(1, 0, 0.01, 1);
+        }
+
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
-            background: #f7f7f7;
-            font-family: Arial, Helvetica, sans-serif;
+            min-height: 100vh;
+            background: var(--black);
+            color: var(--white);
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
         }
 
-        .content-container {
-            text-align: center;
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--gunmetal);
         }
 
-        .message {
-            margin-top: 20px;
-            font-size: 18px;
-            color: red;
+        header .brand img {
+            height: 28px;
+            width: auto;
+            /* Logo ships as dark text on a transparent background; invert it for dark surfaces. */
+            filter: invert(1);
+        }
+
+        header .tag {
+            font-family: "Fragment Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.28px;
+            text-transform: uppercase;
+            color: var(--neon);
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 540px;
+        }
+
+        .eyebrow {
+            font-family: "Fragment Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.28px;
+            text-transform: uppercase;
+            color: var(--red);
+            margin: 0 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            background: var(--red);
+            display: inline-block;
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 300;
+            margin: 0 0 16px;
+            line-height: 0.95;
+            letter-spacing: -3.328px;
         }
 
         .detail-message {
-            margin-top: 10px;
-            font-size: 14px;
-            color: grey;
+            margin: 24px 0 32px;
+            font-size: 0.875rem;
+            color: var(--ash);
+            line-height: 1.5;
+            padding: 16px 20px;
+            border: 1px solid var(--gunmetal);
+            border-left: 2px solid var(--red);
+        }
+
+        .detail-message strong {
+            display: block;
+            font-family: "Fragment Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.28px;
+            text-transform: uppercase;
+            color: var(--red);
+            margin-bottom: 6px;
+            font-weight: 400;
+        }
+
+        /* Signature Spur button */
+        .back-link {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 32px;
+            min-width: 200px;
+            padding: 11px 12px;
+            background: var(--neon);
+            color: var(--black);
+            text-decoration: none;
+            font-family: "Fragment Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.28px;
+            text-transform: uppercase;
+            border-radius: 0;
+            overflow: hidden;
+            transition: color 0.3s ease-in-out;
+        }
+
+        .back-link::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            width: 0;
+            background: var(--white);
+            transition: width 250ms var(--button-bezier);
+        }
+
+        .back-link:hover::before {
+            width: 100%;
+        }
+
+        .back-link > .label,
+        .back-link > .tail {
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-link .tail {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-link .dot {
+            width: 7px;
+            height: 7px;
+            background: var(--black);
+            display: inline-block;
+        }
+
+        footer {
+            padding: 20px 40px;
+            border-top: 1px solid var(--gunmetal);
+            font-family: "Fragment Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.28px;
+            text-transform: uppercase;
+            color: var(--charcoal);
+            text-align: center;
+        }
+
+        @media (max-width: 520px) {
+            header { padding: 16px 20px; }
+            main { padding: 40px 20px; }
+            h1 { font-size: 3rem; letter-spacing: -2.112px; }
         }
     </style>
 </head>
 <body>
-    <div class="content-container">
-        <img src="/logo.png" alt="Logo" width="500px">
-        <h1 class="message">Unauthorized</h1>
-        <p class="detail-message">Sorry, you are not authorized to view this page: {{ .Reason }}</p>
-    </div>
+    <header>
+        <div class="brand">
+            <img src="/logo.png" alt="Spur">
+        </div>
+        <div class="tag">Monocle Client</div>
+    </header>
+
+    <main>
+        <div class="card">
+            <p class="eyebrow">Access Denied</p>
+            <h1>Unauthorized.</h1>
+            <p class="detail-message">
+                <strong>Reason</strong>
+                {{ .Reason }}
+            </p>
+            <a href="/" class="back-link">
+                <span class="label">Try Again</span>
+                <span class="tail">&rarr;<span class="dot"></span></span>
+            </a>
+        </div>
+    </main>
+
+    <footer>Reveal the truth hiding in plain sight.</footer>
 </body>
 </html>

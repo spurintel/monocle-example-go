@@ -14,8 +14,8 @@ import (
 	"strconv"
 	"time"
 
+	jose "github.com/go-jose/go-jose/v4"
 	"github.com/gorilla/mux"
-	jose "gopkg.in/square/go-jose.v2"
 )
 
 //go:embed site/index.html
@@ -146,8 +146,13 @@ func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 
 		log.Printf("recieved post for username %s", username)
 
-		// Parse the encrypted Monocle bundle
-		jwe, err := jose.ParseEncrypted(monocleBundle)
+		// Parse the encrypted Monocle bundle. go-jose v4 requires an explicit
+		// allow-list of permitted key and content encryption algorithms.
+		jwe, err := jose.ParseEncrypted(
+			monocleBundle,
+			[]jose.KeyAlgorithm{jose.RSA_OAEP, jose.RSA_OAEP_256},
+			[]jose.ContentEncryption{jose.A128GCM, jose.A192GCM, jose.A256GCM, jose.A128CBC_HS256, jose.A192CBC_HS384, jose.A256CBC_HS512},
+		)
 		if err != nil {
 			fmt.Println("Error parsing encrypted Monocle bundle")
 			return

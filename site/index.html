@@ -3,107 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <title>Monocle Client Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Fragment+Mono&display=swap" rel="stylesheet">
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: #f7f7f7;
-            font-family: Arial, Helvetica, sans-serif;
+        * {
+            box-sizing: border-box;
         }
 
-        .form-container {
-            text-align: center;
+        :root {
+            --black: #141414;
+            --white: #fafafa;
+            --neon: #ceff00;
+            --red: #ff0101;
+            --gunmetal: #414141;
+            --charcoal: #5a5a5a;
+            --ash: #8d8d8d;
+            --platinum: #ececec;
+            --porcelain: #f5f4f2;
+            --button-bezier: cubic-bezier(1, 0, 0.01, 1);
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--black);
+            color: var(--white);
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mono {
+            font-family: "Fragment Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.28px;
+            line-height: 1.5;
+            text-transform: uppercase;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--gunmetal);
+        }
+
+        header .brand img {
+            height: 28px;
+            width: auto;
+            /* Logo ships as dark text on a transparent background; invert it for dark surfaces. */
+            filter: invert(1);
+        }
+
+        header .tag {
+            font-family: "Fragment Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.28px;
+            text-transform: uppercase;
+            color: var(--neon);
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 460px;
+            padding: 0;
+        }
+
+        .eyebrow {
+            font-family: "Fragment Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.28px;
+            text-transform: uppercase;
+            color: var(--neon);
+            margin: 0 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            background: var(--neon);
+            display: inline-block;
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 300;
+            margin: 0 0 16px;
+            line-height: 0.95;
+            letter-spacing: -3.328px;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            letter-spacing: -0.16px;
+            color: var(--ash);
+            margin: 0 0 32px;
+        }
+
+        #loading-status {
+            font-family: "Fragment Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.28px;
+            text-transform: uppercase;
+            color: var(--red);
+            margin: 0 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #loading-status::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            background: currentColor;
+            display: inline-block;
         }
 
         .monocle-enriched {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 12px;
         }
 
-        .monocle-enriched input,
-        .monocle-enriched button {
-            padding: 10px;
-            width: 300px;
-            font-size: 16px;
-            box-sizing: border-box;
+        .monocle-enriched input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 0.875rem;
+            background: transparent;
+            color: var(--white);
+            border: 1px solid var(--gunmetal);
+            border-radius: 0;
+            font-family: inherit;
+            transition: border-color 0.2s ease;
         }
 
+        .monocle-enriched input:focus {
+            outline: none;
+            border-color: var(--neon);
+        }
+
+        .monocle-enriched input::placeholder {
+            color: var(--charcoal);
+        }
+
+        /* Signature Spur button: sharp corners, mono caps, hover-fill via ::before */
         .monocle-enriched button {
-            background-color: black;
-            color: white;
+            position: relative;
+            width: 100%;
+            padding: 11px 12px;
+            margin-top: 8px;
+            background: var(--neon);
+            color: var(--black);
             border: none;
+            border-radius: 0;
             cursor: pointer;
-            font-size: 18px;
+            font-family: "Fragment Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.75rem;
+            font-weight: 400;
+            letter-spacing: 0.28px;
             text-transform: uppercase;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 32px;
+            transition: color 0.3s ease-in-out;
         }
 
-        #loading-status {
-            font-size: 14px;
-            color: red;
+        .monocle-enriched button::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            width: 0;
+            background: var(--white);
+            transition: width 250ms var(--button-bezier);
+        }
+
+        .monocle-enriched button:hover:not(:disabled)::before {
+            width: 100%;
+        }
+
+        .monocle-enriched button:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+
+        .monocle-enriched button > .label,
+        .monocle-enriched button > .tail {
+            position: relative;
+            z-index: 1;
+        }
+
+        .monocle-enriched button .tail {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .monocle-enriched button .dot {
+            width: 7px;
+            height: 7px;
+            background: var(--black);
+            display: inline-block;
+        }
+
+        footer {
+            padding: 20px 40px;
+            border-top: 1px solid var(--gunmetal);
+            font-family: "Fragment Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.28px;
+            text-transform: uppercase;
+            color: var(--charcoal);
+            text-align: center;
+        }
+
+        @media (max-width: 520px) {
+            header { padding: 16px 20px; }
+            main { padding: 40px 20px; }
+            h1 { font-size: 3rem; letter-spacing: -2.112px; }
         }
     </style>
-    <script async src="https://mcl.spur.us/d/mcl.js?tk={{ .Token }}" id="_mcl"></script>
+
+    <!--
+        Monocle calls the `onassessment` handler on window once the encrypted
+        assessment is ready. The form's submit button stays disabled until
+        the handler populates the hidden `monocle` field and enables it.
+    -->
+    <script async src="https://mcl.spur.us/d/mcl.js?tk={{ .Token }}" id="_mcl" onassessment="handleAssessment"></script>
+    <script>
+        function handleAssessment(assessment) {
+            document.getElementById('monocle-field').value = assessment;
+            document.getElementById('submit-button').disabled = false;
+
+            const status = document.getElementById('loading-status');
+            status.innerText = 'Monocle Ready';
+            status.style.color = 'var(--neon)';
+        }
+    </script>
 </head>
 <body>
-    <div class="form-container">
-        <img src="/logo.png" alt="Logo" width="500px">
-        <h1>Login</h1>
-        <p id="loading-status">Monocle Loading...</p>
-        <form action="/login" method="POST" class="monocle-enriched">
-            <!-- Fields will be added here dynamically -->
-        </form>
-    </div>
-    <script>
-        function createInputField(id, type, name, placeholder, required = true) {
-            const inputField = document.createElement('input');
-            inputField.id = id;
-            inputField.type = type;
-            inputField.name = name;
-            inputField.placeholder = placeholder;
-            inputField.required = required;
+    <header>
+        <div class="brand">
+            <img src="/logo.png" alt="Spur">
+        </div>
+        <div class="tag">Monocle Client</div>
+    </header>
 
-            return inputField;
-        }
+    <main>
+        <div class="card">
+            <p class="eyebrow">Secure Access</p>
+            <h1>Sign in.</h1>
+            <p class="subtitle">Authenticate to continue. Monocle enrichment runs silently in the background.</p>
+            <p id="loading-status">Monocle Loading</p>
+            <form action="/login" method="POST" class="monocle-enriched">
+                <input type="hidden" name="monocle" id="monocle-field">
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit" id="submit-button" disabled>
+                    <span class="label">Sign In</span>
+                    <span class="tail">&rarr;<span class="dot"></span></span>
+                </button>
+            </form>
+        </div>
+    </main>
 
-        function createSubmitButton(id, type, innerText) {
-            const button = document.createElement('button');
-            button.id = id;
-            button.type = type;
-            button.innerText = innerText;
-
-            return button;
-        }
-
-        window.addEventListener('DOMContentLoaded', (event) => {
-            const form = document.querySelector('.monocle-enriched');
-            const loadingStatus = document.getElementById('loading-status');
-
-            const observer = new MutationObserver((mutationsList, observer) => {
-                for(let mutation of mutationsList) {
-                    if (mutation.type === 'childList') {
-                        const monocleField = form.querySelector('input[name="monocle"]');
-                        if (monocleField) {
-                            form.appendChild(createInputField('username-field', 'text', 'username', 'Username'));
-                            form.appendChild(document.createElement('br'));
-                            form.appendChild(createInputField('password-field', 'password', 'password', 'Password'));
-                            form.appendChild(document.createElement('br'));
-                            form.appendChild(createSubmitButton('submit-button', 'submit', 'Submit'));
-
-                            loadingStatus.innerText = 'Monocle Finished Loading';
-                            loadingStatus.style.color = 'green';
-                            observer.disconnect();
-                            break;
-                        }
-                    }
-                }
-            });
-
-            observer.observe(form, { childList: true });
-        });
-    </script>
+    <footer>Reveal the truth hiding in plain sight.</footer>
 </body>
 </html>

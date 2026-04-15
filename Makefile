@@ -1,7 +1,9 @@
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
 
-include .env
+# Optional — godotenv also loads .env at runtime. The leading dash keeps make
+# working on a fresh clone before the user has copied .env.example to .env.
+-include .env
 export
 
 all: format bin

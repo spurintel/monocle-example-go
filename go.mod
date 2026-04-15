@@ -1,14 +1,8 @@
 module monocle-example-go
 
-go 1.20
+go 1.26.2
 
 require (
-	github.com/gorilla/mux v1.8.0
-	gopkg.in/square/go-jose.v2 v2.6.0
-)
-
-require (
-	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/stretchr/testify v1.8.4 // indirect
-	golang.org/x/crypto v0.11.0 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.4
+	github.com/gorilla/mux v1.8.1
 )
