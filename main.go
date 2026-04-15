@@ -37,7 +37,7 @@ type config struct {
 	// Monocle settings
 	privateKey    string
 	token         string
-	parsedPrivKey interface{}
+	parsedPrivKey any
 	strictness    int
 
 	// Fake user credentials
@@ -113,21 +113,26 @@ func handleIndex(c config) http.HandlerFunc {
 
 // usernamePasswordForm is the form data from the username/password form
 type usernamePasswordForm struct {
-	Username string
-	Password string
-	Bundle   string
+	Username   string
+	Password   string
+	Assessment string
 }
 
-// MonocleBundle is the bundle sent by Monocle
-type MonocleBundle struct {
-	VPN      bool   `json:"vpn"`
-	Proxied  bool   `json:"proxied"`
-	Anon     bool   `json:"anon"`
-	IP       string `json:"ip"`
-	TS       string `json:"ts"`
-	Complete bool   `json:"complete"`
-	ID       string `json:"id"`
-	SID      string `json:"sid"`
+// MonocleAssessment is the assessment sent by Monocle
+type MonocleAssessment struct {
+	VPN        bool   `json:"vpn"`
+	Proxied    bool   `json:"proxied"`
+	Anon       bool   `json:"anon"`
+	RDP        bool   `json:"rdp"`
+	DCH        bool   `json:"dch"`
+	CC         string `json:"cc"`
+	IP         string `json:"ip"`
+	TS         string `json:"ts"`
+	Complete   bool   `json:"complete"`
+	ID         string `json:"id"`
+	SID        string `json:"sid"`
+	AIAgentic  bool   `json:"ai_agentic"`
+	AICrawling bool   `json:"ai_crawling"`
 }
 
 type unauthorizedPageData struct {
@@ -142,43 +147,45 @@ func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 		r.ParseForm() //nolint
 		username := r.Form.Get("username")
 		password := r.Form.Get("password")
-		monocleBundle := r.Form.Get("monocle")
+		monocleAssessment := r.Form.Get("monocle")
 
 		log.Printf("recieved post for username %s", username)
 
-		// Parse the encrypted Monocle bundle. go-jose v4 requires an explicit
-		// allow-list of permitted key and content encryption algorithms.
+		// Parse the encrypted Monocle assessment. go-jose v4 requires an
+		// explicit allow-list of permitted key and content encryption
+		// algorithms. Monocle issues P-521 EC deployment keys and encrypts
+		// assessments with ECDH-ES key agreement and A256GCM content encryption.
 		jwe, err := jose.ParseEncrypted(
-			monocleBundle,
-			[]jose.KeyAlgorithm{jose.RSA_OAEP, jose.RSA_OAEP_256},
-			[]jose.ContentEncryption{jose.A128GCM, jose.A192GCM, jose.A256GCM, jose.A128CBC_HS256, jose.A192CBC_HS384, jose.A256CBC_HS512},
+			monocleAssessment,
+			[]jose.KeyAlgorithm{jose.ECDH_ES},
+			[]jose.ContentEncryption{jose.A256GCM},
 		)
 		if err != nil {
-			fmt.Println("Error parsing encrypted Monocle bundle")
+			log.Printf("error parsing encrypted Monocle assessment: %v", err)
 			return
 		}
 
-		// Decrypt the bundle with the private key
-		decryptedBundle, err := jwe.Decrypt(conf.parsedPrivKey)
+		// Decrypt the assessment with the private key
+		decryptedAssessment, err := jwe.Decrypt(conf.parsedPrivKey)
 		if err != nil {
-			log.Printf("error decrypting Monocle bundle: %v", err)
+			log.Printf("error decrypting Monocle assessment: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		log.Println("decrypted Monocle bundle:", string(decryptedBundle))
+		log.Println("decrypted Monocle assessment:", string(decryptedAssessment))
 
-		// Parse the decrypted bundle as JSON
-		var bundle MonocleBundle
-		err = json.Unmarshal(decryptedBundle, &bundle)
+		// Parse the decrypted assessment as JSON
+		var assessment MonocleAssessment
+		err = json.Unmarshal(decryptedAssessment, &assessment)
 		if err != nil {
-			log.Printf("error parsing decrypted Monocle bundle: %v", err)
+			log.Printf("error parsing decrypted Monocle assessment: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		// Analyze the bundle and determine if we should block the request
-		shouldBlock, reason := block(conf, bundle)
+		// Analyze the assessment and determine if we should block the request
+		shouldBlock, reason := block(conf, assessment)
 		if shouldBlock {
 			log.Printf("blocking request for username %s", username)
 			w.WriteHeader(http.StatusUnauthorized)
@@ -193,14 +200,14 @@ func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 			return
 		}
 
-		// If they provided the correct username and password, show the success page with the decrypted bundle for visual confirmation
+		// If they provided the correct username and password, show the success page with the decrypted assessment for visual confirmation
 		if username == conf.username && password == conf.password {
 			log.Printf("showing success page for username %s", username)
 
-			// Format the bundle JSON nicely
-			decryptedBundle, err = json.MarshalIndent(bundle, "", "  ")
+			// Format the assessment JSON nicely
+			decryptedAssessment, err = json.MarshalIndent(assessment, "", "  ")
 			if err != nil {
-				log.Printf("error marshalling decrypted bundle: %v", err)
+				log.Printf("error marshalling decrypted assessment: %v", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -211,7 +218,7 @@ func handleUsernamePasswordFormPost(conf config) http.HandlerFunc {
 				return
 			}
 
-			t.Execute(w, usernamePasswordForm{Username: username, Password: password, Bundle: string(decryptedBundle)}) //nolint
+			t.Execute(w, usernamePasswordForm{Username: username, Password: password, Assessment: string(decryptedAssessment)}) //nolint
 
 			return
 		}
@@ -280,49 +287,49 @@ func parseConfigFromEnv() config {
 	}
 }
 
-func block(cfg config, b MonocleBundle) (bool, string) {
+func block(cfg config, a MonocleAssessment) (bool, string) {
 	// If we couldn't complete the analysis, block
-	if !b.Complete {
-		log.Println("bundle not complete, blocking")
-		return true, "bundle not complete"
+	if !a.Complete {
+		log.Println("assessment not complete, blocking")
+		return true, "assessment not complete"
 	}
 
 	// If the timestamp is empty, block
-	if b.TS == "" {
-		log.Println("bundle timestamp empty, blocking")
-		return true, "bundle timestamp empty"
+	if a.TS == "" {
+		log.Println("assessment timestamp empty, blocking")
+		return true, "assessment timestamp empty"
 	}
 
 	// If the timestamp is too old, block
-	parsedTimestamp, err := time.Parse(time.RFC3339, b.TS)
+	parsedTimestamp, err := time.Parse(time.RFC3339, a.TS)
 	if err != nil {
 		log.Printf("error parsing timestamp: %v", err)
-		return true, "bundle timestamp invalid"
+		return true, "assessment timestamp invalid"
 	}
 
 	if time.Since(parsedTimestamp) > time.Hour {
-		log.Println("bundle timestamp too old, blocking")
-		return true, "bundle timestamp too old"
+		log.Println("assessment timestamp too old, blocking")
+		return true, "assessment timestamp too old"
 	}
 
-	// Depending on the strictness level, block if the bundle is a VPN, proxy, or anonymous
+	// Depending on the strictness level, block if the assessment flags a VPN, proxy, or anonymous connection
 	switch cfg.strictness {
 	case 0:
 		// Log only
-		log.Printf("strictness level log only, doing nothing for vpn: %v, proxied, %v, anon: %v", b.VPN, b.Proxied, b.Anon)
+		log.Printf("strictness level log only, doing nothing for vpn: %v, proxied, %v, anon: %v", a.VPN, a.Proxied, a.Anon)
 		return false, ""
 	case 1:
 		// Block proxies
-		return b.Proxied && b.Anon, "no proxies allowed"
+		return a.Proxied && a.Anon, "no proxies allowed"
 	case 2:
 		// Block vpns
-		return b.VPN && b.Anon, "no vpns allowed"
+		return a.VPN && a.Anon, "no vpns allowed"
 	case 3:
 		// Block vpns and proxies
-		return (b.VPN || b.Proxied) && b.Anon, "no vpns or proxies allowed"
+		return (a.VPN || a.Proxied) && a.Anon, "no vpns or proxies allowed"
 	default:
 		// Default to log only
-		log.Printf("strictness level log only, doing nothing for vpn: %v, proxied, %v, anon: %v", b.VPN, b.Proxied, b.Anon)
+		log.Printf("strictness level log only, doing nothing for vpn: %v, proxied, %v, anon: %v", a.VPN, a.Proxied, a.Anon)
 		return false, ""
 	}
 }

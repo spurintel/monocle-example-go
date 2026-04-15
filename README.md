@@ -76,13 +76,13 @@ For additional documentation please visit the monocle product page [Monocle](htt
 For additional information on integration visit the monocle documentation page [Monocle Integration](https://docs.spur.us/#/monocle?id=monocle)
 
 ## How does monocle work?
-You add a small JavaScript stub to your website or application. On a user-action, such as a form submission, you get an assessment (a.k.a threat bundle) that you can interpret on your backend to take action.
+You add a small JavaScript stub to your website or application. On a user-action, such as a form submission, you get an assessment that you can interpret on your backend to take action.
 
 For additional documentation please visit the monocle product page [Monocle](https://spur.us/products/monocle/)
 
 For additional information on integration visit the monocle documentation page [Monocle Integration](https://docs.spur.us/#/monocle?id=monocle)
 
-### Example Threat Bundles
+### Example Assessments
 
 #### VPN
 ```
@@ -130,10 +130,10 @@ For additional information on integration visit the monocle documentation page [
 
 ## How do I decide what to block?
 
-The Monocle Community Edition allows for the tracking of three distinct signals: VPN, proxied, and anonymous traffic. If you upgrade to the Monocle Enterprise Edition, your bundle will include an extra 'service' field. This added feature provides the means to more intricately block specific services. Using these indicators together, you can effectively deter undesired traffic to your website.
+The Monocle Community Edition allows for the tracking of three distinct signals: VPN, proxied, and anonymous traffic. If you upgrade to the Monocle Enterprise Edition, your assessment will include an extra 'service' field. This added feature provides the means to more intricately block specific services. Using these indicators together, you can effectively deter undesired traffic to your website.
 
 ### Strictness Levels
-This repository defines 4 strictness levels exposed as an environment variable to configure blocking. In addition to basic checks such as making sure the bundle is complete and isn't stale, it also checks various combinations of vpn, proxied, and anon that should be blocked.
+This repository defines 4 strictness levels exposed as an environment variable to configure blocking. In addition to basic checks such as making sure the assessment is complete and isn't stale, it also checks various combinations of vpn, proxied, and anon that should be blocked.
 
 Stricness Level Definitions:
 ```
@@ -148,9 +148,9 @@ See below for some example code on customizing the decision making process if yo
 
 ### No VPNs
 ```go
-// Utilize the returned bundle to block anonymous vpns
-if bundle.VPN && bundle.Anon {
-    log.Printf("Blocking request for username %s with bundle %s", username, monocleBundle)
+// Utilize the returned assessment to block anonymous vpns
+if assessment.VPN && assessment.Anon {
+    log.Printf("Blocking request for username %s with assessment %s", username, monocleAssessment)
     w.WriteHeader(http.StatusUnauthorized)
     w.Write([]byte(unauthorizedHTML)) //nolint
     return
@@ -159,9 +159,9 @@ if bundle.VPN && bundle.Anon {
 
 ### No Proxies
 ```go
-// Utilize the returned bundle to block anonymous proxies
-if bundle.Proxied && bundle.Anon {
-    log.Printf("Blocking request for username %s with bundle %s", username, monocleBundle)
+// Utilize the returned assessment to block anonymous proxies
+if assessment.Proxied && assessment.Anon {
+    log.Printf("Blocking request for username %s with assessment %s", username, monocleAssessment)
     w.WriteHeader(http.StatusUnauthorized)
     w.Write([]byte(unauthorizedHTML)) //nolint
     return
@@ -170,9 +170,9 @@ if bundle.Proxied && bundle.Anon {
 
 ### No VPNs or Proxies
 ```go
-// Utilize the returned bundle to block anonymous vpns and proxies
-if (bundle.VPN || bundle.Proxied) && bundle.Anon {
-    log.Printf("Blocking request for username %s with bundle %s", username, monocleBundle)
+// Utilize the returned assessment to block anonymous vpns and proxies
+if (assessment.VPN || assessment.Proxied) && assessment.Anon {
+    log.Printf("Blocking request for username %s with assessment %s", username, monocleAssessment)
     w.WriteHeader(http.StatusUnauthorized)
     w.Write([]byte(unauthorizedHTML)) //nolint
     return
@@ -226,7 +226,7 @@ If the server is running correctly you should see the landing/login form page wi
 
 #### Success Page
 
-If you provde the correct username and password you will get to see the decrypted bundle in its JSON form.
+If you provde the correct username and password you will get to see the decrypted assessment in its JSON form.
 
 ![Success Page Image](images/success.png)
 
