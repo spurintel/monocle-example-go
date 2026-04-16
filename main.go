@@ -127,10 +127,13 @@ type MonocleAssessment struct {
 	DCH        bool   `json:"dch"`
 	CC         string `json:"cc"`
 	IP         string `json:"ip"`
+	IPv6       string `json:"ipv6"`
 	TS         string `json:"ts"`
 	Complete   bool   `json:"complete"`
 	ID         string `json:"id"`
 	SID        string `json:"sid"`
+	Service    string `json:"service"`
+	CPD        string `json:"cpd"`
 	AIAgentic  bool   `json:"ai_agentic"`
 	AICrawling bool   `json:"ai_crawling"`
 }
