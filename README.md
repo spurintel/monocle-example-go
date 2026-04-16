@@ -6,21 +6,21 @@ A simple Go backend example to get you started with monocle. It includes a Go we
    ```
    mkdir /tmp/monocle-test && cd /tmp/monocle-test
    ```
-2. Create a free Spur account - [Spur Sign Up](https://spur.us/app/start/create-account)
+2. Create a free Spur account - [Spur Sign Up](https://app.spur.us/sign-up)
 3. Sign in to your account
-4. Navigate to your monocle settings - [Monocle Management](https://spur.us/app/monocle)
-5. Create a deployment
-
+4. Navigate to your Monocole settings - [Monocle Management](https://app.spur.us/monocle)
+5. Click 'Create application'
+6. Name your Application & Click 'Create'
 
    ![Form Image](images/name-deployment.png)
 
-6. Click the download button to save your key or create a file and copy the pem encoded key data into it.
+6. Navigate to the 'Settings' tab. Copy the 'Private key'.
 
 
    ![Form Image](images/save-deployment-key.png)
 
-7. Move your downloaded key to your test directory and name it `monocle-key.pem`
-8. Save your site token to a file called `site-token.txt`
+7. Create a file named `monocle-key.pem` and paste the key into it.
+8. Save your 'Publishable key' to a file called `site-token.txt`
 
 
    ![Form Image](images/site-token.png)
@@ -38,11 +38,11 @@ A simple Go backend example to get you started with monocle. It includes a Go we
    PASSWORD=alice
    STRICTNESS_LEVEL=0
    ```
-10. Setup your private key for embedding as an env variable. (Mac OS example)
+10. Setup your private key for embedding as an env variable. (Mac OS example to your clipboard)
     ```
     cat monocle-key.pem|base64|pbcopy
     ```
-11. Use the base64 encoded key in your .env file
+11. Paste the base64 encoded key in your .env file
    ```
    # Open .env in your favorite editor and paste your base64 encoded key from the clipboard into the PRIVATE_KEY variable
    PRIVATE_KEY=dsaklfjaksljdfklajdsfkldasjfkdlasjfdsaklsjfklasdjfkdsa...
@@ -184,9 +184,9 @@ if (assessment.VPN || assessment.Proxied) && assessment.Anon {
 ### Sign up for monocle
 Before you can use this example you need a monocle private key and token.
 
-1. Create a free Spur account - [Spur Sign Up](https://spur.us/app/start/create-account)
+1. Create a free Spur account - [Spur Sign Up](https://app.spur.us/sign-up)
 2. Sign in to your account
-3. Navigate to your monocle settings - [Monocle Management](https://spur.us/app/monocle)
+3. Navigate to your monocle settings - [Monocle Management](https://app.spur.us/monocle)
 4. Create a deployment
 5. Save your deployment key and site token
 6. Setup your private key for embedding as an env variable. (Mac OS example)
