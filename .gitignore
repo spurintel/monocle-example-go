@@ -3,3 +3,5 @@
 server_*
 .env
 .DS_Store
+monocle-key.pem
+site-token.txt
